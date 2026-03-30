@@ -14,43 +14,43 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Scripts
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
-          repository: ks-won/scripts
+          repository: ${{ secrets.SCRIPTS_REPO }}
           token: ${{ secrets.RUNNER_TOKEN }}
           path: scripts
           
       - name: Checkout Data
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
-          repository: ks-won/data
+          repository: ${{ secrets.DATA_REPO }}
           token: ${{ secrets.RUNNER_TOKEN }}
           path: data
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
-          node-version: '20'
+          node-version: '24'
           
       # Runs ONLY when triggered by an issue event
       - name: Run Event Handler
         if: github.event_name == 'repository_dispatch'
         env:
           GITHUB_TOKEN: ${{ secrets.RUNNER_TOKEN }}
-          TRACKER_REPO: ks-won/tracker
+          TRACKER_REPO: ${{ secrets.TRACKER_REPO }}
           ISSUE_NUMBER: ${{ github.event.client_payload.issue_number }}
           EVENT_ACTION: ${{ github.event.client_payload.action }}
           DATA_DIR: data
-        run: node scripts/js/event_handler.js
+        run: node scripts/js/event_handler.js > /dev/null
           
       # Runs ONLY on the scheduled cron
       - name: Run Cron Updater
         if: github.event_name == 'schedule'
         env:
           GITHUB_TOKEN: ${{ secrets.RUNNER_TOKEN }}
-          TRACKER_REPO: ks-won/tracker
+          TRACKER_REPO: ${{ secrets.TRACKER_REPO }}
           DATA_DIR: data
-        run: node scripts/js/cron_updater.js
+        run: node scripts/js/cron_updater.js > /dev/null
           
       - name: Commit Data
         run: |
@@ -59,4 +59,4 @@ jobs:
           git config user.email "bot@example.com"
           git add .
           git commit -m "Automated data update" || exit 0
-          git push
+          git push > /dev/null 2>&1
