@@ -1,0 +1,29 @@
+name: Repository Keepalive
+on:
+  schedule:
+    - cron: '0 0 1 * *' # Runs at 00:00 on the 1st of every month
+  workflow_dispatch: # Allows you to run it manually from the Actions tab to test it
+
+jobs:
+  keepalive:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          # Using your existing token so it has permission to push back to the repo
+          token: ${{ secrets.RUNNER_TOKEN }} 
+          
+      - name: Create Keepalive Commit
+        run: |
+          # Write the current date to a hidden file
+          date > .keepalive
+          
+          # Configure Git as your bot
+          git config user.name "Runner Bot"
+          git config user.email "bot@example.com"
+          
+          # Add, commit, and push
+          git add .keepalive
+          git commit -m "chore: automated keepalive to prevent cron suspension" || exit 0
+          git push
